@@ -1,0 +1,328 @@
+model User {
+  id            Int     @id @default(autoincrement()) @map("user_id")
+  name          String  @db.NVarChar(255)
+  email         String? @db.NVarChar(255)
+  emailVerified Boolean @default(false) @map("email_verified")
+  emailEnabled  Boolean @default(true) @map("email_enabled")
+  image         String? @db.NVarChar(MAX)
+  uuid          String? @db.NVarChar(36)
+  externalId    String? @map("external_id") @db.NVarChar(255)
+  department    String? @map("department") @db.NVarChar(255)
+  jobTitle      String? @map("job_title") @db.NVarChar(255)
+  supervisorId  Int?    @map("supervisor_id")
+  isActive      Boolean @default(true) @map("is_active")
+  isManaged     Boolean @default(true) @map("is_managed")
+  timezone      String? @db.NVarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Audit fields (self)
+  createdBy Int? @map("created_by")
+  updatedBy Int? @map("updated_by")
+
+  // Existing relations
+  account     Account[]
+  session     Session[]
+  userRole    UserRole[]
+  ssoprovider SSOProvider[]
+
+  supervisor User?  @relation("EmployeeToSupervisor", fields: [supervisorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  employees  User[] @relation("EmployeeToSupervisor")
+
+  // Self-audit relations
+  createdByUser User? @relation("UserCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User? @relation("UserUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  usersCreated User[] @relation("UserCreatedBy")
+  usersUpdated User[] @relation("UserUpdatedBy")
+
+  providerCreated SSOProvider[] @relation("ProviderCreatedBy")
+  providerUpdated SSOProvider[] @relation("ProviderUpdatedBy")
+
+  // Account audit back-relations
+  accountsCreated Account[] @relation("AccountCreatedBy")
+  accountsUpdated Account[] @relation("AccountUpdatedBy")
+
+  // Session audit back-relations
+  sessionsCreated Session[] @relation("SessionCreatedBy")
+  sessionsUpdated Session[] @relation("SessionUpdatedBy")
+
+  // Verification audit back-relations
+  verificationsCreated Verification[] @relation("VerificationCreatedBy")
+  verificationsUpdated Verification[] @relation("VerificationUpdatedBy")
+
+  // UserRole audit back-relations
+  userRolesCreated UserRole[] @relation("UserRoleCreatedBy")
+  userRolesUpdated UserRole[] @relation("UserRoleUpdatedBy")
+
+  // Role audit back-relations
+  rolesCreated Role[] @relation("RoleCreatedBy")
+  rolesUpdated Role[] @relation("RoleUpdatedBy")
+
+  // ResourceAction audit back-relations
+  resourceActionsCreated ResourceAction[] @relation("ResourceActionCreatedBy")
+  resourceActionsUpdated ResourceAction[] @relation("ResourceActionUpdatedBy")
+
+  // RoleResourceAction audit back-relations
+  roleResourceActionsCreated RoleResourceAction[] @relation("RoleResourceActionCreatedBy")
+  roleResourceActionsUpdated RoleResourceAction[] @relation("RoleResourceActionUpdatedBy")
+
+  // Resource audit back-relations
+  resourcesCreated Resource[] @relation("ResourceCreatedBy")
+  resourcesUpdated Resource[] @relation("ResourceUpdatedBy")
+
+  // Action audit back-relations
+  actionsCreated Action[] @relation("ActionCreatedBy")
+  actionsUpdated Action[] @relation("ActionUpdatedBy")
+
+  // Configuration audit back-relations
+  configurationsCreated Configuration[] @relation("ConfigurationCreatedBy")
+  configurationsUpdated Configuration[] @relation("ConfigurationUpdatedBy")
+
+  systemProcessCreated SystemProcess[] @relation("SystemProcessCreatedBy")
+  systemProcessUpdated SystemProcess[] @relation("SystemProcessUpdatedBy")
+
+  @@map("user")
+}
+
+model Session {
+  id               Int      @id @default(autoincrement()) @map("user_session_id")
+  userId           Int      @map("user_id")
+  token            String   @unique @db.VarChar(2048)
+  expiresAt        DateTime @map("expires_at")
+  ipAddress        String?  @map("ip_address") @db.NVarChar(255)
+  userAgent        String?  @map("user_agent") @db.NVarChar(1000)
+  impersonatedRole String?  @map("impersonated_role") @db.NVarChar(255)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  createdBy Int? @map("created_by")
+  updatedBy Int? @map("updated_by")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdByUser User? @relation("SessionCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User? @relation("SessionUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_session")
+}
+
+model Account {
+  id                    Int       @id @default(autoincrement()) @map("user_account_id")
+  userId                Int       @map("user_id")
+  accountId             String    @map("account_id") @db.VarChar(255)
+  providerId            String    @map("provider_id") @db.VarChar(255)
+  accessToken           String?   @map("access_token") @db.VarChar(Max)
+  refreshToken          String?   @map("refresh_token") @db.VarChar(2048)
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?   @db.VarChar(255)
+  idToken               String?   @map("id_token") @db.VarChar(2048)
+  password              String?   @db.VarChar(255)
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  createdBy Int? @map("created_by")
+  updatedBy Int? @map("updated_by")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdByUser User? @relation("AccountCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User? @relation("AccountUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_account")
+}
+
+model Verification {
+  id         Int      @id @default(autoincrement()) @map("user_verification_id")
+  identifier String   @db.NVarChar(255)
+  value      String   @db.NVarChar(4000)
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  createdBy Int? @map("created_by")
+  updatedBy Int? @map("updated_by")
+
+  createdByUser User? @relation("VerificationCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User? @relation("VerificationUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_verification")
+}
+
+model SSOProvider {
+  id             Int     @id @default(autoincrement()) @map("sso_provider_id")
+  issuer         String  @db.NVarChar(255)
+  domain         String  @db.NVarChar(255)
+  oidcConfig     String? @map("oidc_config") @db.NVarChar(Max)
+  samlConfig     String? @map("saml_config") @db.NVarChar(Max)
+  userId         Int?    @map("user_id")
+  providerId     String  @map("provider_id") @db.VarChar(255)
+  organizationId String? @map("organization_id") @db.VarChar(255)
+
+  createdBy Int? @map("created_by")
+  updatedBy Int? @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdByUser User? @relation("ProviderCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User? @relation("ProviderUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("sso_provider")
+}
+
+model UserRole {
+  userRoleId Int      @id @default(autoincrement()) @map("user_role_id")
+  userId     Int      @map("user_id")
+  roleId     Int      @map("role_id")
+  granted    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+
+  createdByUser User @relation("UserRoleCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("UserRoleUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, roleId], name: "userId_roleId")
+  @@map("user_role")
+}
+
+model Role {
+  roleId    Int      @id @default(autoincrement()) @map("role_id")
+  name      String   @db.NVarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  createdByUser User @relation("RoleCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("RoleUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  userRole           UserRole[]
+  roleResourceAction RoleResourceAction[]
+
+  @@map("role")
+}
+
+model ResourceAction {
+  resourceActionId Int      @id @default(autoincrement()) @map("resource_action_id")
+  resourceId       Int      @map("resource_id")
+  actionId         Int      @map("action_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  resource           Resource             @relation(fields: [resourceId], references: [resourceId], onDelete: Cascade)
+  action             Action               @relation(fields: [actionId], references: [actionId], onDelete: Cascade)
+  roleResourceAction RoleResourceAction[] // Permissions for this resource-action pair
+
+  createdByUser User @relation("ResourceActionCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("ResourceActionUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([resourceId, actionId]) // Pr duplicates
+  @@map("resource_action")
+}
+
+model RoleResourceAction {
+  roleResourceActionId Int      @id @default(autoincrement()) @map("role_resource_action_id")
+  roleId               Int      @map("role_id")
+  resourceActionId     Int      @map("resource_action_id")
+  permit               Boolean
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  role           Role           @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  resourceAction ResourceAction @relation(fields: [resourceActionId], references: [resourceActionId], onDelete: Cascade)
+
+  createdByUser User @relation("RoleResourceActionCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("RoleResourceActionUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([roleId, resourceActionId])
+  @@map("role_resource_action")
+}
+
+model Resource {
+  resourceId Int      @id @default(autoincrement()) @map("resource_id")
+  name       String   @db.NVarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  createdByUser User @relation("ResourceCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("ResourceUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  resourceAction ResourceAction[]
+
+  @@map("resource")
+}
+
+model Action {
+  actionId  Int      @id @default(autoincrement()) @map("action_id")
+  name      String   @db.NVarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  createdByUser User @relation("ActionCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("ActionUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  resourceAction ResourceAction[]
+
+  @@map("action")
+}
+
+model Configuration {
+  configurationId Int      @id @default(autoincrement()) @map("configuration_id")
+  key             String   @unique @db.NVarChar(255)
+  name            String   @db.NVarChar(255)
+  description     String?  @db.NVarChar(1000)
+  value           String   @db.NVarChar(255)
+  type            String   @db.NVarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  createdByUser User @relation("ConfigurationCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("ConfigurationUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("configuration")
+}
+
+model SystemProcess {
+  systemProcessId Int      @id @default(autoincrement()) @map("system_process_id")
+  key             String   @unique @db.NVarChar(255)
+  tag             String   @db.NVarChar(255)
+  pid             Int      @map("pid")
+  parameter       String   @map("parameter") @db.NVarChar(1000)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  createdBy Int @map("created_by")
+  updatedBy Int @map("updated_by")
+
+  createdByUser User @relation("SystemProcessCreatedBy", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedByUser User @relation("SystemProcessUpdatedBy", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("system_process")
+}

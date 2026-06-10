@@ -1,0 +1,115 @@
+'use client';
+
+import Image from 'next/image';
+import { MicrosoftButton } from './ui/microsoft-signin-button';
+import { useSearchParams } from 'next/navigation';
+import { signIn } from '@/lib/auth-client';
+import { Button } from './ui/button';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { Loader2Icon } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
+import { APP_FULL_URL, APP_SUBFOLDER, DEFAULT_AUTH_CALLBACK } from '@/lib/api-helpers';
+
+const signInGitHub = async (callback: string) => {
+  const data = await signIn.social({
+    provider: 'github',
+    callbackURL: callback,
+  });
+  return data;
+};
+
+const signInEntra = async (callback: string) => {
+  const data = await signIn.social({
+    provider: 'microsoft',
+    callbackURL: callback,
+    scopes: ['openid', 'profile', 'email'], //['email', 'openid', 'profile', 'offline_access', 'User.Read'],
+  });
+  return data;
+};
+
+const signInEntraSSO = async (callback: string) => {
+  const res = await authClient.signIn.sso({
+    providerId: 'microsoft',
+    callbackURL: callback, // where to land post-login
+    // errorCallbackURL: "/auth/error", // optional
+  });
+  return res;
+};
+
+
+
+export function SignInMicrosoft() {
+  const searchParams = useSearchParams();
+
+  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : (searchParams.get('callbackurl') as string);
+
+  return (
+    <>
+      <MicrosoftButton onClick={() => signInEntra(callbackURL)}>
+        <span className="w-[21px] h-[21px] flex items-center justify-center shrink-0">
+          <Image src={`${APP_FULL_URL}/images/ms-symbollockup_mssymbol_19.svg`} alt="Microsoft Logo" width={21} height={21} priority={true} />
+        </span>
+        Sign in with Microsoft
+      </MicrosoftButton>
+    </>
+  );
+}
+
+export function SignInGithub() {
+  const { resolvedTheme } = useTheme();
+
+  const searchParams = useSearchParams();
+
+  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : (searchParams.get('callbackurl') as string);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <>
+      <Button onClick={() => signInGitHub(callbackURL)}>
+        <span className="w-[21px] h-[21px] flex items-center justify-center shrink-0">
+          <Image
+            src={resolvedTheme === 'light' ? `${APP_FULL_URL}/images/github-mark-white.svg` : `${APP_FULL_URL}/images/github-mark.svg`}
+            alt="Github Logo"
+            width={21}
+            height={21}
+            priority={true}
+          />
+        </span>
+        Sign in with GitHub
+      </Button>
+    </>
+  );
+}
+
+export function SignInMicrosoftSSO() {
+  const searchParams = useSearchParams();
+
+  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : (searchParams.get('callbackurl') as string);
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return (
+    <>
+      <MicrosoftButton onClick={() => signInEntraSSO(callbackURL)}>
+        <span className="w-[21px] h-[21px] flex items-center justify-center shrink-0">
+          <Image src={`${APP_FULL_URL}/images/ms-symbollockup_mssymbol_19.svg`} alt="Microsoft Logo" width={21} height={21} priority={true} />
+        </span>
+        Sign in with Microsoft
+      </MicrosoftButton>
+    </>
+  );
+}
