@@ -41,12 +41,10 @@ export default async function Home() {
             </Button>
           </div>
         }
-        title="Meeting Room Availability"
+        title={`${process.env.LANDING_PAGE_TITLE}`}
       >
         <div className="gap-4 sm:p-4 h-[calc(100vh-var(--header-height)-1px)] transition-[width] duration-300 min-w-0 flex flex-col overflow-y-auto">
-          <div className="overflow-hidden min-w-92 flex flex-1 flex-col min-h-0">
-            ... LANDING PAGE ... 
-          </div>
+          <div className="overflow-hidden min-w-92 flex flex-1 flex-col min-h-0">... LANDING PAGE ...</div>
         </div>
       </PublicHeader>
     </div>

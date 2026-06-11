@@ -4,6 +4,7 @@ import { loadEnvConfig } from '@next/env';
 loadEnvConfig(process.cwd());
 
 const requiredEnv = [
+  'LANDING_PAGE_TITLE',
   'NEXT_PUBLIC_BASE_URL',
   'PRIVATE_INTERNAL_API_KEY',
   'BETTER_AUTH_SECRET',

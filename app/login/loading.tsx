@@ -27,7 +27,7 @@ export default function Loading() {
             </Button>
           </div>
         }
-        title="Room Scheduling/Booking"
+        title={`${process.env.LANDING_PAGE_TITLE}`}
       >
         <div
           className="flex flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
@@ -48,7 +48,7 @@ export default function Loading() {
                 </div>
 
                 <h1 className="text-xl">City of Sault Ste. Marie</h1>
-                <h1 className="text-2xl font-bold">Room Scheduling/Booking</h1>
+                <h1 className="text-2xl font-bold">{process.env.LANDING_PAGE_TITLE}</h1>
                 <div className="flex flex-col items-center gap-2 m-4 w-full">
                   <div className="h-[41px] w-52 bg-muted shadow-xs animate-pulse" />
                 </div>
