@@ -1,4 +1,4 @@
-import { Action, PrismaClient, Resource, ResourceAction, Role } from "@prisma/client";
+import { Action, PrismaClient, Resource, ResourceAction, Role } from '@prisma/client';
 import {
   CONFIG_MANIFEST,
   DEFAULT_PERMISSION_SETS,
@@ -8,31 +8,26 @@ import {
   SessionResource,
   SessionRole,
   TConfigurationKeys,
-} from "../lib/types";
+} from '../lib/types';
 
-import { DOMAINS, FIRST_NAMES, LAST_NAMES } from "./seed-data";
+import { DOMAINS, FIRST_NAMES, LAST_NAMES } from './seed-data';
 
-import dynamicIconImports from "lucide-react/dynamicIconImports";
+import dynamicIconImports from 'lucide-react/dynamicIconImports';
 
 type IconName = keyof typeof dynamicIconImports;
 
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url:
-        process.env.DATABASE_PROVIDER === "sqlserver"
-          ? process.env.DATABASE_URL_SQLSERVER
-          : process.env.DATABASE_URL_POSTGRESQL, // e.g., regular user
+      url: process.env.DATABASE_PROVIDER === 'sqlserver' ? process.env.DATABASE_URL_SQLSERVER : process.env.DATABASE_URL_POSTGRESQL, // e.g., regular user
     },
   },
 });
 
-const DATABASE_NAME = process.env.DATABASE_NAME || "Unknown";
+const DATABASE_NAME = process.env.DATABASE_NAME || 'Unknown';
 
 async function FindCreateActionList() {
-  const DEFAULT_ACTIONS = Array.from(
-    new Set(DEFAULT_RESOURCE_ACTIONS.flatMap((r) => r.ACTIONS)),
-  ) as readonly SessionAction[];
+  const DEFAULT_ACTIONS = Array.from(new Set(DEFAULT_RESOURCE_ACTIONS.flatMap((r) => r.ACTIONS))) as readonly SessionAction[];
 
   const actionList: Record<SessionAction, Action> = {} as Record<SessionAction, Action>;
 
@@ -44,7 +39,7 @@ async function FindCreateActionList() {
 }
 
 async function FindCreateAction(name: string): Promise<Action> {
-  let record = await prisma.action.findFirst({ where: { name: name }, orderBy: { actionId: "asc" } });
+  let record = await prisma.action.findFirst({ where: { name: name }, orderBy: { actionId: 'asc' } });
 
   if (!record) {
     record = await prisma.action.create({ data: { name: name, createdBy: 0, updatedBy: 0 } });
@@ -57,7 +52,7 @@ async function FindCreateRoleList() {
   const roleList: Record<SessionRole, Role> = {} as Record<SessionRole, Role>;
 
   for (const role of DEFAULT_USER_ROLES) {
-    if (role === "Public" || role === "Private") continue;
+    if (role === 'Public' || role === 'Private') continue;
 
     roleList[role] = await FindCreateRole(role);
   }
@@ -75,9 +70,7 @@ async function FindCreateRole(name: string): Promise<Role> {
 }
 
 async function FindCreateResourceList() {
-  const DEFAULT_RESOURCES = Array.from(
-    new Set(DEFAULT_RESOURCE_ACTIONS.flatMap((r) => r.RESOURCE)),
-  ) as readonly SessionResource[];
+  const DEFAULT_RESOURCES = Array.from(new Set(DEFAULT_RESOURCE_ACTIONS.flatMap((r) => r.RESOURCE))) as readonly SessionResource[];
 
   const resourceList: Record<SessionResource, Resource> = {} as Record<SessionResource, Resource>;
 
@@ -88,7 +81,7 @@ async function FindCreateResourceList() {
 }
 
 async function FindCreateResource(name: string): Promise<Resource> {
-  let record = await prisma.resource.findFirst({ where: { name: name }, orderBy: { resourceId: "asc" } });
+  let record = await prisma.resource.findFirst({ where: { name: name }, orderBy: { resourceId: 'asc' } });
 
   if (!record) {
     record = await prisma.resource.create({ data: { name: name, createdBy: 0, updatedBy: 0 } });
@@ -97,14 +90,8 @@ async function FindCreateResource(name: string): Promise<Resource> {
   return record;
 }
 
-async function FindCreateResourceActionList(
-  resourceList: Record<SessionResource, Resource>,
-  actionList: Record<SessionAction, Action>,
-) {
-  const resourceActionList: Record<string, Record<string, ResourceAction>> = {} as Record<
-    string,
-    Record<string, ResourceAction>
-  >;
+async function FindCreateResourceActionList(resourceList: Record<SessionResource, Resource>, actionList: Record<SessionAction, Action>) {
+  const resourceActionList: Record<string, Record<string, ResourceAction>> = {} as Record<string, Record<string, ResourceAction>>;
 
   for (const resourceAction of DEFAULT_RESOURCE_ACTIONS) {
     const resourceId = resourceList[resourceAction.RESOURCE].resourceId;
@@ -112,10 +99,7 @@ async function FindCreateResourceActionList(
 
     for (const actionName of resourceAction.ACTIONS) {
       const actionId = actionList[actionName].actionId;
-      resourceActionList[resourceAction.RESOURCE][actionName] = await FindCreateResourceActionRecord(
-        resourceId,
-        actionId,
-      );
+      resourceActionList[resourceAction.RESOURCE][actionName] = await FindCreateResourceActionRecord(resourceId, actionId);
     }
   }
   return resourceActionList;
@@ -138,7 +122,7 @@ async function FindCreateResourceActionRecord(resourceId: number, actionId: numb
 async function FindCreateRoleResourceAction(roleId: number, resourceActionId: number, permit: boolean) {
   let record = await prisma.roleResourceAction.findFirst({
     where: { roleId: roleId, resourceActionId: resourceActionId },
-    orderBy: { roleResourceActionId: "asc" },
+    orderBy: { roleResourceActionId: 'asc' },
   });
 
   if (!record) {
@@ -208,7 +192,7 @@ async function findCreateUser(userData: {
         image: userData.image ?? null,
         externalId: userData.employeeNumber,
         isActive: userData.employeeActive ?? true,
-        timezone: process.env.DEFAULT_TIMEZONE || "America/Toronto",
+        timezone: process.env.DEFAULT_TIMEZONE || 'America/Toronto',
         createdBy: 0,
         updatedBy: 0,
       },
@@ -232,13 +216,7 @@ async function FindCreateUserRole(roleId: number, userId: number) {
   return record;
 }
 
-async function FindCreateConfigurationSetting(
-  key: TConfigurationKeys,
-  name: string,
-  description: string,
-  value: string,
-  type: string,
-) {
+async function FindCreateConfigurationSetting(key: TConfigurationKeys, name: string, description: string, value: string, type: string) {
   let record = await prisma.configuration.findFirst({
     where: { key: key },
   });
@@ -255,7 +233,7 @@ async function getActiveUsers(): Promise<{ id: number }[]> {
   const result = await prisma.user.findMany({
     where: { isActive: true },
     select: { id: true },
-    orderBy: { id: "asc" },
+    orderBy: { id: 'asc' },
   });
 
   return result;
@@ -284,7 +262,7 @@ export async function saveSystemProcess({
 
     return process;
   } catch (err) {
-    console.error("[Scheduler] Failed to save metadata:", err);
+    console.error('[Scheduler] Failed to save metadata:', err);
   }
 }
 
@@ -309,7 +287,7 @@ async function deleteAllData() {
 async function createSystemUser() {
   const userId = 0;
 
-  if (process.env.DATABASE_PROVIDER === "sqlserver") {
+  if (process.env.DATABASE_PROVIDER === 'sqlserver') {
     // SQL Server: Needs the IDENTITY_INSERT toggle wrap
     await prisma.$transaction(async (tx) => {
       await tx.$executeRawUnsafe(`SET IDENTITY_INSERT "User" ON`);
@@ -334,9 +312,9 @@ async function createSystemUser() {
       update: {},
       create: {
         id: userId,
-        name: "SYSTEM",
-        email: "",
-        externalId: "000",
+        name: 'SYSTEM',
+        email: '',
+        externalId: '000',
         emailVerified: false,
         isActive: false,
       },
@@ -345,29 +323,29 @@ async function createSystemUser() {
 }
 
 async function main() {
-  if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
-    console.log("Deleting All Data...");
+  if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'development') {
+    console.log('Deleting All Data...');
     await deleteAllData();
   }
 
-  console.log("Creating System User...");
+  console.log('Creating System User...');
   await createSystemUser();
 
   if (process.env.ADMIN_USER_EMAIL) {
     const adminUser = await findCreateUser({
       email: process.env.ADMIN_USER_EMAIL,
-      name: "Admin User",
-      employeeNumber: "000",
-      emailVerified: false,
+      name: 'Admin User',
+      employeeNumber: '000',
+      emailVerified: true,
       employeeActive: true,
     });
 
-    const adminRole = await FindCreateRole("Admin");
+    const adminRole = await FindCreateRole('Admin');
     await FindCreateUserRole(adminRole.roleId, adminUser.id);
   }
 
-  if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
-    console.log("Seeding Random Users...");
+  if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'development') {
+    console.log('Seeding Random Users...');
     //await prisma.user.deleteMany({ where: { NOT: { id: 0 } } });
     CreateRandomUsers(50);
   }
@@ -376,7 +354,7 @@ async function main() {
   const resources = await FindCreateResourceList();
   const resourceActions = await FindCreateResourceActionList(resources, actions);
   const roles = await FindCreateRoleList();
-  console.log("Seeding Permission Sets...");
+  console.log('Seeding Permission Sets...');
   for (const roleSet of DEFAULT_PERMISSION_SETS) {
     const role = roles[roleSet.ROLE];
     for (const resourceSet of roleSet.SET) {
@@ -388,13 +366,7 @@ async function main() {
   }
 
   for (const config of CONFIG_MANIFEST) {
-    await FindCreateConfigurationSetting(
-      config.key,
-      config.name,
-      config.description,
-      String(config.defaultValue),
-      config.type,
-    );
+    await FindCreateConfigurationSetting(config.key, config.name, config.description, String(config.defaultValue), config.type);
   }
 
   const roomList: {
