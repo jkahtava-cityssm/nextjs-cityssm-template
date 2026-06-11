@@ -61,7 +61,8 @@ const generateSchema = () => {
       console.log('--- Non-SQLServer DB detected. Stripping @db attributes. ---');
       // Matches @db. followed by anything until a space or end of line
       // e.g., @db.NVarChar(255), @db.VarChar(Max), @db.NVarChar(4000)
-      schemaContent = schemaContent.replace(/@db\.[a-zA-Z0-9_]+(\([^)]*\))?/g, '');
+      // Ignores @db.Decimal because it can be mapped to both SQLSERVER and POSTGRES
+      schemaContent = schemaContent.replace(/@db\.(?!Decimal)[a-zA-Z0-9_]+(\([^)]*\))?/g, '');
     } else {
       console.log('--- SQLServer DB detected. Preserving schema attributes. ---');
     }
