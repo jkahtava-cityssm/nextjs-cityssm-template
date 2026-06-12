@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckSquare, ChevronDown, RefreshCw, SunMoon } from 'lucide-react';
+import { CheckSquare, ChevronDown, CircleUserRound, LogOut, SunMoon } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -23,28 +23,22 @@ import { RoleSelect } from '@/app/features/roles/role-select';
 import { useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import { fetchDELETE, fetchPOST } from '@/lib/fetch-client';
+import { useUserProfileQuery } from '@/lib/services/users';
 
 const PAGE_PERMISSIONS = {
   IsAdmin: { type: 'role', role: 'Admin' },
 } as const satisfies GroupedPermissionRequirement;
 
 export function NavUser({ session, isPending }: { session: Session; isPending: boolean }) {
-  const { isMobile } = useSidebar();
   const { resolvedTheme, setTheme } = useTheme();
 
-  const [selectedRoleId, setSelectedRoleId] = useState<string | undefined>(undefined);
+  const { data: user, isLoading } = useUserProfileQuery(session?.user.id);
 
-  const user: IUser = {
-    name: session?.user.name ? session.user.name : undefined,
-    email: session?.user.email ? session.user.email : undefined,
-    image: session?.user.image ? session.user.image : undefined,
-  };
+  const [selectedRoleId, setSelectedRoleId] = useState<string | undefined>(undefined);
 
   const { permissions } = useVerifySessionRequirement(session, PAGE_PERMISSIONS);
 
   const isImpersonating = Boolean(session?.session?.impersonatedRole);
-
-  const listRoles = getSessionRoles(session);
 
   const handleAddImpersonation = async (roleId: string) => {
     const result = await fetchPOST<{ sessionId: string; impersonatedRole: string }>('/api/admin/impersonate', { roleId: roleId });
@@ -69,13 +63,40 @@ export function NavUser({ session, isPending }: { session: Session; isPending: b
     return result;
   };
 
-  if (isPending) {
+  if (isPending || isLoading) {
     return (
       <SidebarMenuButton size="lg" className="w-56 rounded-lg">
         <Skeleton className="h-8 w-8 rounded-full" />
         <div className="grid flex-1 text-left text-sm leading-tight space-y-2">
           <Skeleton className="h-2" />
           <Skeleton className="h-2" />
+        </div>
+      </SidebarMenuButton>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SidebarMenuButton
+        size="lg"
+        className="w-56 rounded-lg border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-colors group"
+      >
+        <div className="relative">
+          <CircleUserRound className="h-7 w-7 text-destructive/40 group-hover:scale-105 transition-transform group-hover:text-destructive " />
+          <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+          </span>
+        </div>
+
+        <div className="grid flex-1 text-left text-sm leading-tight">
+          <span className="font-semibold text-destructive/60 tracking-tight group-hover:text-destructive">Logout</span>
+          <span className="text-xs text-destructive/60 flex items-center gap-1 group-hover:text-destructive">
+            <span>Profile Error</span>
+          </span>
+        </div>
+        <div className="relative">
+          <LogOut className="h-5 w-5 text-destructive/40 scale-90 group-hover:scale-100 group-hover:text-destructive transition-all  duration-200 ease-out  " />
         </div>
       </SidebarMenuButton>
     );
@@ -91,7 +112,7 @@ export function NavUser({ session, isPending }: { session: Session; isPending: b
                 //rounded-2xl
               }
               <Avatar className="h-8 w-8 border-2">
-                {user.image ? (
+                {user ? (
                   <AvatarImage src={user.image} alt={user.name} className={resolvedTheme === 'dark' ? 'mask-radial-from-50%' : ''} />
                 ) : (
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
@@ -104,12 +125,7 @@ export function NavUser({ session, isPending }: { session: Session; isPending: b
               <ChevronDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'bottom'}
-            align="end"
-            sideOffset={4}
-          >
+          <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg" side={'bottom'} align="end" sideOffset={4}>
             <DropdownMenuGroup>
               <DropdownMenuItem
                 onClick={(event) => {
@@ -135,7 +151,7 @@ export function NavUser({ session, isPending }: { session: Session; isPending: b
                 <DropdownMenuSeparator />
                 <div className="px-3 py-2 text-xs text-muted-foreground">
                   <div>
-                    <span className="font-medium">Roles:</span> {listRoles?.join(', ')}
+                    <span className="font-medium">Roles:</span> {user.roles?.join(', ')}
                   </div>
                 </div>
               </>
@@ -177,4 +193,3 @@ export function NavUser({ session, isPending }: { session: Session; isPending: b
     </SidebarMenu>
   );
 }
-
