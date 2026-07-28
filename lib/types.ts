@@ -43,7 +43,6 @@ export const COLOR_OPTIONS = [
 
 export type TColors = (typeof COLOR_OPTIONS)[number];
 
-
 export const SYSTEM_PROCESS_MANIFEST = {
   ENTRA_SYNC_SCHEDULER: {
     key: 'ENTRA_SYNC_SCHEDULER',
@@ -51,10 +50,7 @@ export const SYSTEM_PROCESS_MANIFEST = {
   },
 } as const;
 
-
 export type TSystemProcess = keyof typeof SYSTEM_PROCESS_MANIFEST;
-
-export const CONFIGURATION_KEYS = ['singleSignOnEnabled', 'defaultUserRole'] as const;
 
 export const CONFIG_MANIFEST = [
   {
@@ -72,6 +68,8 @@ export const CONFIG_MANIFEST = [
     type: 'number',
   },
 ] as const;
+
+export const CONFIGURATION_KEYS = CONFIG_MANIFEST.map((item) => item.key);
 
 export type TConfigurationKeys = (typeof CONFIG_MANIFEST)[number]['key'];
 
