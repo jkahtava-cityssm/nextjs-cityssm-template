@@ -35,20 +35,16 @@ export async function NotFoundMessage(message: string = 'Requested Resource was 
   return NextResponse.json({ message: message }, { status: 404 }); // Not Found
 }
 
-
-
 const ENV_APP_SUBFOLDER = process.env.NEXT_PUBLIC_SUBFOLDER_PATH || '';
 export const APP_SUBFOLDER = ENV_APP_SUBFOLDER ? `/${ENV_APP_SUBFOLDER.replace(/^\/+|\/+$/g, '')}` : '';
 
 export const APP_DOMAIN = process.env.NEXT_PUBLIC_BASE_URL || '';
 export const APP_FULL_URL = `${APP_DOMAIN}${APP_SUBFOLDER}`;
 
-
 export const ROUTES = {
   protectedRedirect: '/landing',
   publicRedirect: '/login',
 } as const;
-
 
 export const DEFAULT_AUTH_CALLBACK = (() => {
   const cleanRedirect = ROUTES.protectedRedirect.replace(/^\/+/, '');
@@ -56,12 +52,15 @@ export const DEFAULT_AUTH_CALLBACK = (() => {
 })();
 
 export function formatServerURL(url: string) {
-  
   const base = APP_FULL_URL.endsWith('/') ? APP_FULL_URL : `${APP_FULL_URL}/`;
   const cleanPath = url.replace(/^\/+/, '');
 
   return new URL(cleanPath, base);
 }
+export const formatCallbackURL = (route: string) => {
+  const cleanRoute = route.replace(/^\/+/, '');
+  return APP_SUBFOLDER ? `${APP_SUBFOLDER}/${cleanRoute}` : `/${cleanRoute}`;
+};
 
 export function navigateURL(date: Date | null, view: 'agenda' | 'year' | 'month' | 'week' | 'day' | 'public' | 'request' | 'all'): string {
   const path = {

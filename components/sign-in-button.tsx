@@ -9,7 +9,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
-import { APP_FULL_URL, APP_SUBFOLDER, DEFAULT_AUTH_CALLBACK } from '@/lib/api-helpers';
+import { APP_FULL_URL, APP_SUBFOLDER, DEFAULT_AUTH_CALLBACK, formatCallbackURL } from '@/lib/api-helpers';
 
 const signInGitHub = async (callback: string) => {
   const data = await signIn.social({
@@ -37,12 +37,10 @@ const signInEntraSSO = async (callback: string) => {
   return res;
 };
 
-
-
 export function SignInMicrosoft() {
   const searchParams = useSearchParams();
 
-  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : (searchParams.get('callbackurl') as string);
+  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : formatCallbackURL(searchParams.get('callbackurl') as string);
 
   return (
     <>
@@ -61,7 +59,7 @@ export function SignInGithub() {
 
   const searchParams = useSearchParams();
 
-  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : (searchParams.get('callbackurl') as string);
+  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : formatCallbackURL(searchParams.get('callbackurl') as string);
 
   const [mounted, setMounted] = useState(false);
 
@@ -90,7 +88,7 @@ export function SignInGithub() {
 export function SignInMicrosoftSSO() {
   const searchParams = useSearchParams();
 
-  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : (searchParams.get('callbackurl') as string);
+  const callbackURL = searchParams.get('callbackurl') == null ? DEFAULT_AUTH_CALLBACK : formatCallbackURL(searchParams.get('callbackurl') as string);
 
   const [mounted, setMounted] = useState(false);
 
